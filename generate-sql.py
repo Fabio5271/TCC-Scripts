@@ -88,7 +88,7 @@ if ('--comment-only' in sys.argv or 'c' in SHORT_OPTS):
         sql_content = re.sub(rf'^\s*COMMENT ON COLUMN {new_tbl}\."{col_escaped}"\s+IS\s+[^;]+;\s*$', r'-- \g<0>',
                              sql_content, flags=re.MULTILINE)
 else:
-    for col in list(cols_to_drop):
+    for col in cols_to_drop:
         try:
             col_escaped = re.escape(col)
             m = re.search(rf'^\s*"{col_escaped}"\s+[^,\n]+,?\s*\n', sql_content, flags=re.MULTILINE)
