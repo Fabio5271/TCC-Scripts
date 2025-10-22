@@ -93,10 +93,8 @@ else:
             col_escaped = re.escape(col)
             m = re.search(rf'^\s*"{col_escaped}"\s+[^,\n]+,?\s*\n', sql_content, flags=re.MULTILINE)
             sql_content = sql_content[:m.start()] + sql_content[m.end():]
-            # print(f'match: {m.group(0)}')
             m2 = re.search(rf'^\s*COMMENT ON COLUMN {new_tbl}\."{col_escaped}"\s+IS\s+[^;]+;\s*\n', sql_content, flags=re.MULTILINE)
             sql_content = sql_content[:m2.start()] + sql_content[m2.end():]
-            # print(f'match2: {m2.group(0)}')
         except AttributeError:
             print(f'error removing col: {col}')
 
