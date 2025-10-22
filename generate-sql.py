@@ -8,10 +8,11 @@ if (len(sys.argv) < 3):
           '    OUTPUT_FILE: File to save generated SQL in\n\n' +
           
           '    Options:\n' +
-          '    -s, --source-sql: Path to source SQL file\n' +
+          '    -s, --source-sql: Path to source SQL file (default:\'./helper-files/tcc-create-unclean-tbl.sql\'\n' +
           '    -c, --comment-only: Comment unused columns instead of removing them\n' +
-          '    -v: verbose\n')
-    print('Not enough arguments, exiting')
+          '    -v, --verbose: Show columns as they are kept\n\n' +
+          
+          'Not enough arguments, exiting')
     sys.exit(0)
 
 CSV_DATA_FILE = sys.argv[1]

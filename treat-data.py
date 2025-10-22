@@ -41,9 +41,15 @@ def make_dfs_list_qc(file_paths, dtypes):
 
 
 if (len(sys.argv) < 3):
-    print('Usage: python treat-data.py CSV_DIRECTORY_PATH OUTPUT_FILE [OPTIONS]')
-    print('Options: -c, --combine-parts, -q, --quiet')
-    print('Not enough arguments, exiting')
+    print('Usage: python treat-data.py CSV_DIRECTORY_PATH OUTPUT_FILE [OPTIONS]\n' +
+          '    CSV_DIRECTORY_PATH: Path to directory contining all .csv files to be included\n' +
+          '    OUTPUT_FILE: File to save treated data in\n\n' +
+
+          '    Options:\n' +
+          '    -c, --combine-parts: Don\'t clean any data, just combine files that match \'*.part*.csv\' in CSV_DIRECTORY_PATH\n' +
+          '    -q, --quiet: Disable non-essential output\n\n' +
+
+          'Not enough arguments, exiting')
     sys.exit(0)
 
 if (sys.argv[1][-1] == '/'): # Path to directory that contains all extracted CSVs, remove '/' from end of path
