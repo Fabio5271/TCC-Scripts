@@ -80,19 +80,25 @@ sql_content = re.sub(
     sql_content, flags=re.MULTILINE | re.IGNORECASE
 )
 
-# For each column to drop, comment out the column definition and its comment
+# For each column to drop, comment out or remove the column definition and its comment
 if ('--comment-only' in sys.argv or 'c' in SHORT_OPTS):
     for col in cols_to_drop:
         col_escaped = re.escape(col) # Escape special characters in column name
         sql_content = re.sub(rf'^\s*"{col_escaped}"\s+[^,]+,?\s*$', r'-- \g<0>', sql_content, flags=re.MULTILINE)
-        sql_content = re.sub(rf'^\s*COMMENT ON COLUMN {re.escape(new_tbl)}\."{col_escaped}"\s+IS\s+[^;]+;\s*$', r'-- \g<0>',
+        sql_content = re.sub(rf'^\s*COMMENT ON COLUMN {new_tbl}\."{col_escaped}"\s+IS\s+[^;]+;\s*$', r'-- \g<0>',
                              sql_content, flags=re.MULTILINE)
 else:
-    for col in list(cols_to_drop)[:1]:
-        print(f'col: {col}')
-        col_escaped = re.escape(col) # Escape special characters in column name
-        m = re.search(rf'^\s*"{col_escaped}"\s+[^,]+,?\s*$', sql_content, flags=re.MULTILINE)
-        print(f'result: {sql_content[:m.start()]}{sql_content[m.end():]}')
+    for col in list(cols_to_drop):
+        try:
+            col_escaped = re.escape(col)
+            m = re.search(rf'^\s*"{col_escaped}"\s+[^,\n]+,?\s*\n', sql_content, flags=re.MULTILINE)
+            sql_content = sql_content[:m.start()] + sql_content[m.end():]
+            # print(f'match: {m.group(0)}')
+            m2 = re.search(rf'^\s*COMMENT ON COLUMN {new_tbl}\."{col_escaped}"\s+IS\s+[^;]+;\s*\n', sql_content, flags=re.MULTILINE)
+            sql_content = sql_content[:m2.start()] + sql_content[m2.end():]
+            # print(f'match2: {m2.group(0)}')
+        except AttributeError:
+            print(f'error removing col: {col}')
 
 
 # Write the modified SQL content to a new file
