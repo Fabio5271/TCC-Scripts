@@ -41,34 +41,41 @@ def make_dfs_list_qc(file_paths, dtypes):
 
 
 if (len(sys.argv) < 3):
-    print('Usage: python treat-data.py CSV_DIRECTORY_PATH OUTPUT_FILE [OPTIONS]\n' +
+    print(f'Usage: python {sys.argv[0]} CSV_DIRECTORY_PATH OUTPUT_FILE [OPTIONS]\n' +
           '    CSV_DIRECTORY_PATH: Path to directory contining all .csv files to be included\n' +
           '    OUTPUT_FILE: File to save treated data in\n\n' +
 
           '    Options:\n' +
           '    -c, --combine-parts: Don\'t clean any data, just combine files that match \'*.part*.csv\' in CSV_DIRECTORY_PATH\n' +
-          '    -q, --quiet: Disable non-essential output\n\n' +
+          '    -q, --quiet: Disable non-essential output\n' +
+          '    --strict=[1-2]: Strictness level, higher means more columns are removed (default: 1)\n\n' +
 
           'Not enough arguments, exiting')
     sys.exit(0)
 
 if (sys.argv[1][-1] == '/'): # Path to directory that contains all extracted CSVs, remove '/' from end of path
     CSV_DIR_PATH = sys.argv[1][:-1]
+else:
+    CSV_DIR_PATH = sys.argv[1]
+if (not os.path.exists(CSV_DIR_PATH)):
+    print(f'Path not found: \'{CSV_DIR_PATH}\', exiting')
+    sys.exit(0)
 
 OUT_FILE = sys.argv[2]
-
 if os.path.exists(OUT_FILE):
     if (input('File already exists! Overwrite? [y/N]:') not in ['y', 'Y']):
         sys.exit(0)
 
 # parse short options and strictness
+short_opts = ''
+strictness = 1
 for i, arg in enumerate(sys.argv[1:], 1):
     if re.match(r'-[a-z]+', arg):
-        SHORT_OPTS = sys.argv[i][1:]
-    else: SHORT_OPTS = ''
+        short_opts = sys.argv[i][1:]
     if re.match(r'--strict=[0-9]', arg):
-        STRICTNESS = sys.argv[i][9]
-    else: STRICTNESS = 1
+        strictness = int(sys.argv[i][9])
+SHORT_OPTS = short_opts
+STRICTNESS = strictness
 
 QUIET_RUN = ('--quiet' in sys.argv or 'q' in SHORT_OPTS)
 COMBINE_PARTS = ('--combine-parts' in sys.argv or 'c' in SHORT_OPTS)
@@ -99,7 +106,10 @@ else:
                     'mes_saida', 'def_idade_bas', 'def_idade_pub', 'def_idade_18', 'INSTRU', 'def_instru']
     
     if STRICTNESS >= 2:
-        cols_to_drop += ['UF_ZI', 'ESPEC', 'MUNIC_RES', 'MUNIC_MOV']
+        cols_to_drop += ['UF_ZI', 'ESPEC', 'MUNIC_RES', 'MUNIC_MOV', 'res_MUNCOD', 'res_CODIGO_UF', 'int_MUNCOD', 'int_CODIGO_UF', 'res_coordenadas', 'int_coordenadas']
+
+    if STRICTNESS >= 3:
+        cols_to_drop += []
     
 dtypes = 'object'
 

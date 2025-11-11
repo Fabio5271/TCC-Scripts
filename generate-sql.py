@@ -23,10 +23,11 @@ if os.path.exists(OUT_FILE):
         sys.exit(0)
 
 # Parse short options
+short_opts = ''
 for i, arg in enumerate(sys.argv[1:], 1):
     if re.match(r'-[a-z]+', arg):
-        SHORT_OPTS = sys.argv[i][1:]
-    else: SHORT_OPTS = ''
+        short_opts = sys.argv[i][1:]
+SHORT_OPTS = short_opts
 
 SRC_SQL_DEFAULT_FILE = './helper-files/tcc-create-unclean-tbl.sql'
 if ('--source-sql' in sys.argv):
