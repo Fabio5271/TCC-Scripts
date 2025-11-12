@@ -20,7 +20,6 @@ if (not os.path.exists(CSV_DATA_FILE)):
     sys.exit(0)
 
 df = pd.read_csv(CSV_DATA_FILE)
-# df = pd.read_csv(CSV_DATA_FILE, encoding='latin-1', delimiter=';')
 
 # Compute correlation matrix
 numeric_df = df.select_dtypes(include=['number'])  # Selects only int, float, etc. columns
