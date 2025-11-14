@@ -56,7 +56,7 @@ NEW_COLS = [
 # Read the CSV with semicolon separator
 df = pd.read_csv(IN_FILE, sep=';')
 
-if '--keep-names' not in sys.argv and '-k' not in SHORT_OPTS:
+if '--keep-names' not in sys.argv and 'k' not in SHORT_OPTS:
     df.columns = NEW_COLS # Rename columns
 COL_DATE = df.columns[0]
 
