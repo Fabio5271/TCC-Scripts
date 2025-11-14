@@ -58,7 +58,7 @@ df = pd.read_csv(IN_FILE, sep=';')
 
 if '--keep-names' not in sys.argv and '-k' not in SHORT_OPTS:
     df.columns = NEW_COLS # Rename columns
-DATE_COL = df.columns[0]
+COL_DATE = df.columns[0]
 
 # Replace commas with dots + convert to numeric 
 for col in df.columns:
@@ -69,13 +69,23 @@ for col in df.columns:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
 # Convert 'Data' to datetime for grouping
-df[DATE_COL] = pd.to_datetime(df[DATE_COL], format='%Y/%m/%d', errors='coerce')
+df[COL_DATE] = pd.to_datetime(df[COL_DATE], format='%Y/%m/%d', errors='coerce')
 
 # Drop rows with invalid dates (if any)
-df = df.dropna(subset=[DATE_COL])
+df = df.dropna(subset=[COL_DATE])
 
 # Group by 'Data' and compute mean for numeric columns only
-df_daily_avg = df.groupby(DATE_COL).mean(numeric_only=True).round(2)
+df_daily_avg = df.groupby(COL_DATE).mean(numeric_only=True).round(2)
+
+# Add daily temperature variation column
+if list(df.columns) == NEW_COLS:
+    temp_diff = (df_daily_avg['temp_max_c'] - df_daily_avg['temp_min_c']).round(2)
+    temp_min_idx = df_daily_avg.columns.get_loc('temp_min_c')
+    df_daily_avg.insert(temp_min_idx + 1, 'temp_var_c', temp_diff)
+else:
+    temp_diff = (df_daily_avg['TEMPERATURA MÁXIMA NA HORA ANT. (AUT) (°C)'] - df_daily_avg['TEMPERATURA MÍNIMA NA HORA ANT. (AUT) (°C)']).round(2)
+    temp_min_idx = df_daily_avg.columns.get_loc('TEMPERATURA MÍNIMA NA HORA ANT. (AUT) (°C)')
+    df_daily_avg.insert(temp_min_idx + 1, 'VARIAÇÃO DA TEMPERATURA NA HORA ANT. (°C)', temp_diff)
 
 # Save to new CSV (index as 'Data')
 df_daily_avg.to_csv(OUT_FILE)

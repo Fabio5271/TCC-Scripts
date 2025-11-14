@@ -48,7 +48,7 @@ if (len(sys.argv) < 3):
           '    Options:\n' +
           '    -c, --combine-parts: Don\'t clean any data, just combine files that match \'*.part*.csv\' in CSV_DIRECTORY_PATH\n' +
           '    -q, --quiet: Disable non-essential output\n' +
-          '    --strict=[1-2]: Strictness level, higher means more columns are removed (default: 1)\n\n' +
+          '    --strict=[1-4]: Strictness level, higher means more columns are removed (default: 1)\n\n' +
 
           'Not enough arguments, exiting')
     sys.exit(0)
@@ -109,8 +109,14 @@ else:
         cols_to_drop += ['UF_ZI', 'ESPEC', 'MUNIC_RES', 'MUNIC_MOV', 'res_MUNCOD', 'res_CODIGO_UF', 'int_MUNCOD', 'int_CODIGO_UF', 'res_coordenadas', 'int_coordenadas']
 
     if STRICTNESS >= 3:
-        cols_to_drop += []
+        cols_to_drop += ['ANO_CMPT', 'MES_CMPT', 'MARCA_UTI', 'def_marca_uti', 'COBRANCA', 'def_cobranca', 'NACIONAL', 'CAR_INT', 'def_car_int', 'MARCA_UCI', 'def_marca_uci', 'DIAGSEC1',
+                         'DIAGSEC2', 'DIAGSEC3', 'DIAGSEC4', 'DIAGSEC5', 'DIAGSEC6', 'DIAGSEC7', 'DIAGSEC8', 'DIAGSEC9', 'TPDISEC1', 'def_tpdisec1', 'TPDISEC2', 'def_tpdisec2',
+                         'TPDISEC3', 'def_tpdisec3', 'TPDISEC4', 'def_tpdisec4', 'TPDISEC5', 'def_tpdisec5', 'TPDISEC6', 'def_tpdisec6', 'TPDISEC7', 'def_tpdisec7', 'TPDISEC8',
+                         'def_tpdisec8', 'TPDISEC9', 'def_tpdisec9', 'CID_ASSO', 'CID_MORTE', 'DIAG_SECUN', 'def_diag_secun_cap', 'def_diag_secun_grupo', 'def_diag_secun_cat', 'def_diag_secun_subcat']
     
+    if STRICTNESS >= 4:
+        cols_to_drop += ['int_LATITUDE', 'int_LONGITUDE', 'int_ALTITUDE']
+
 dtypes = 'object'
 
 # Eliminate checks in the loop to make this part as fast as possible
