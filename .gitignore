@@ -1,2 +1,5 @@
 tcc-create-tbl.sql
 test.sql
+
+# So this is how we ignore symlinks, huh?
+/data
