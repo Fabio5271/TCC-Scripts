@@ -1,6 +1,5 @@
-import os
-import re
-import sys
+import os, re, sys
+import pandas as pd
 
 if (len(sys.argv) < 3):
     print('Usage: python generate-sql.py CSV_DATA_PATH OUTPUT_FILE [-s SRC_SQL_FILE] [OPTIONS]\n' + 
@@ -10,7 +9,8 @@ if (len(sys.argv) < 3):
           '    Options:\n' +
           '    -s, --source-sql: Path to source SQL file (default:\'./helper-files/tcc-create-unclean-tbl.sql\'\n' +
           '    -c, --comment-only: Comment unused columns instead of removing them\n' +
-          '    -v, --verbose: Show columns as they are kept\n\n' +
+          '    -v, --verbose: Show columns as they are kept\n' +
+          '    -d, --debug: Debug mode\n\n'
           
           'Not enough arguments, exiting')
     sys.exit(0)
@@ -28,6 +28,7 @@ for i, arg in enumerate(sys.argv[1:], 1):
     if re.match(r'-[a-z]+', arg):
         short_opts = sys.argv[i][1:]
 SHORT_OPTS = short_opts
+DEBUG_ON = '--debug' in sys.argv or 'd' in SHORT_OPTS
 
 SRC_SQL_DEFAULT_FILE = './helper-files/tcc-create-unclean-tbl.sql'
 if ('--source-sql' in sys.argv):
@@ -55,11 +56,15 @@ ORIG_TBL = create_table_sttmt.group(1).strip('"') # Remove quotes if present
 orig_cols = re.findall(rf'^COMMENT ON COLUMN\s+{re.escape(ORIG_TBL)}\."([a-zA-Z0-9_]+)"', sql_content, re.MULTILINE | re.IGNORECASE)
 with open(CSV_DATA_FILE, 'r', encoding='utf-8') as f:
     cols_in_use = f.readline().strip().split(',')
-if 'v' in SHORT_OPTS:
+    if DEBUG_ON:
+        print(f'\nColumns detected: {cols_in_use}\n')
+if 'v' in SHORT_OPTS or '--verbose' in sys.argv:
     print(f'Columns in use:')
     for col in cols_in_use:
         print(col)
 cols_to_drop = set(orig_cols) - set(cols_in_use)
+if DEBUG_ON:
+    print(f'Columns to drop: {cols_to_drop}\n')
 
 # Extract and sanitize new table name
 new_tbl = os.path.splitext(os.path.basename(OUT_FILE))[0]

@@ -1,5 +1,7 @@
-tcc-create-tbl.sql
-test.sql
+.vscode
+*.csv
+*.json
+*.sql
 
 # So this is how we ignore symlinks, huh?
 /data

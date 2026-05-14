@@ -133,7 +133,7 @@ else:
 # Concatenate all DataFrames into one
 combined_df = pd.concat(dfs, ignore_index=True)
 
-# Filter rows where 'def_diag_princ_cap' matches 'X. Doenças do aparelho respiratório
+# Filter rows where 'def_diag_princ_cap' matches 'X. Doenças do aparelho respiratório'
 filtered_df = combined_df if COMBINE_PARTS else combined_df[combined_df['def_diag_princ_cap'] == 'X. Doenças do aparelho respiratório']
 
 # Save the filtered DataFrame to CSV of specified filename
