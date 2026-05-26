@@ -25,8 +25,18 @@ def make_dfs_list_q(file_paths):
         dfs.append(df)
     return dfs
 
+def rolling_avg(df, col, days):
+    return df[col].rolling(days, min_periods=1).mean().round(2)
+
+def rolling_min(df, col, days):
+    return df[col].rolling(days, min_periods=1).min()
+
+def rolling_max(df, col, days):
+    return df[col].rolling(days, min_periods=1).max()
+
+
 if (len(sys.argv) < 3):
-    print(f'Usage: python {sys.argv[0]} CSV_DIR_PATH [OUT_FILE] [OPTIONS]\n' +
+    print(f'Usage: python {sys.argv[0]} CSV_DIR_PATH OUT_FILE [OPTIONS]\n' +
           '    CSV_DIR_PATH: Path to directory contining all .csv files to be included\n' +
           '    OUT_FILE: File to save treated data in\n\n' +
 
@@ -113,7 +123,7 @@ df[COL_DATE] = pd.to_datetime(df[COL_DATE], format='mixed', errors='raise')
 df = df.dropna(subset=[COL_DATE])
 df = df[df[COL_DATE] < pd.to_datetime('2025-12-01')] # Because we only have SUS data up to 2025-11-30
 
-# Group by 'Data' and compute min, mean, max for numeric columns only
+# ================== Group by date, compute min, mean, max for numeric columns only ==================
 cols_avg = [COL_DATE, 'precip_mm', 'press_nvl_estac_mb', 'radiac_kjm2', 'temp_seco_c', 'temp_orv_c', 'umd_r_pct', 'vento_dir_gr', 'vento_vel_mps']
 cols_min = [COL_DATE, 'precip_mm', 'press_min_mb', 'temp_min_c', 'temp_orv_min_c', 'umd_r_min_pct']
 cols_max = [COL_DATE, 'precip_mm', 'press_max_mb', 'temp_max_c', 'temp_orv_max_c', 'umd_r_max_pct', 'vento_raj_max_mps']
@@ -142,26 +152,52 @@ df_daily.insert(df_daily.columns.get_loc('vento_vel_mps') + 1, 'vento_raj_max_mp
 # Add calculated columns
 # Add temp variation first so we can already use it
 temp_diff = (df_daily['temp_max_c'] - df_daily['temp_min_c']).round(2)
-temp_min_idx = df_daily.columns.get_loc('temp_min_c')
-df_daily.insert(temp_min_idx + 1, 'temp_var_c', temp_diff)
+temp_max_idx = df_daily.columns.get_loc('temp_max_c')
+df_daily.insert(temp_max_idx + 1, 'temp_var_c', temp_diff)
 
-avg_temp_last_10 = df_daily['temp_seco_c'].rolling(10, min_periods=1).mean().round(2)
-avg_temp_var_last_10 = df_daily['temp_var_c'].rolling(10, min_periods=1).mean().round(2)
-min_temp_last_10 = df_daily['temp_min_c'].rolling(10, min_periods=1).min()
-max_temp_last_10 = df_daily['temp_max_c'].rolling(10, min_periods=1).max()
+avg_temp_last_10 = rolling_avg(df_daily, 'temp_seco_c', 10)
+avg_temp_var_last_10 = rolling_avg(df_daily, 'temp_var_c', 10)
+min_temp_last_10 = rolling_min(df_daily, 'temp_min_c', 10)
+max_temp_last_10 = rolling_max(df_daily, 'temp_max_c', 10)
 xtr_temp_var_last_10 = (max_temp_last_10 - min_temp_last_10).round(2)
-avg_hum_last_10 = df_daily['umd_r_pct'].rolling(10, min_periods=1).mean().round(2)
-avg_prec_last_10 = df_daily['precip_mm'].rolling(10, min_periods=1).mean().round(2)
-avg_press_last_10 = df_daily['press_nvl_estac_mb'].rolling(10, min_periods=1).mean().round(2)
+# avg_hum_last_5 = rolling_avg(df_daily, 'umd_r_pct', 5)
+# avg_hum_last_10 = rolling_avg(df_daily, 'umd_r_pct', 10)
+avg_hum_last_15 = rolling_avg(df_daily, 'umd_r_pct', 15)
+min_hum_last_10 = rolling_min(df_daily, 'umd_r_pct', 10)
+min_hum_last_15 = rolling_min(df_daily, 'umd_r_pct', 15)
+# max_hum_last_10 = rolling_max(df_daily, 'umd_r_pct', 10)
+avg_prec_last_10 = rolling_avg(df_daily, 'precip_mm', 10)
+avg_press_last_10 = rolling_avg(df_daily, 'press_nvl_estac_mb', 10)
+avg_wind_last_5 = rolling_avg(df_daily, 'vento_vel_mps', 5)
+max_wind_last_5 = rolling_max(df_daily, 'vento_raj_max_mps', 5)
+avg_wind_last_10 = rolling_avg(df_daily, 'vento_vel_mps', 10)
+# max_wind_last_10 = rolling_max(df_daily, 'vento_raj_max_mps', 10)
+avg_wind_last_15 = rolling_avg(df_daily, 'vento_vel_mps', 15)
+# max_wind_last_15 = rolling_max(df_daily, 'vento_raj_max_mps', 15)
+avg_wind_last_30 = rolling_avg(df_daily, 'vento_vel_mps', 30)
+# max_wind_last_30 = rolling_max(df_daily, 'vento_raj_max_mps', 30)
 
-df_daily.insert(temp_min_idx + 2, 'temp_med_10d', avg_temp_last_10)
-df_daily.insert(temp_min_idx + 3, 'temp_min_10d', min_temp_last_10)
-df_daily.insert(temp_min_idx + 4, 'temp_max_10d', max_temp_last_10)
-df_daily.insert(temp_min_idx + 5, 'temp_var_ext_10d', xtr_temp_var_last_10)
-df_daily.insert(temp_min_idx + 6, 'temp_var_med_10d', avg_temp_var_last_10)
-df_daily.insert(df_daily.columns.get_loc('umd_r_pct') + 1, 'umd_med_10d', avg_hum_last_10)
+df_daily.insert(temp_max_idx + 2, 'temp_med_10d', avg_temp_last_10)
+df_daily.insert(temp_max_idx + 3, 'temp_min_10d', min_temp_last_10)
+df_daily.insert(temp_max_idx + 4, 'temp_max_10d', max_temp_last_10)
+df_daily.insert(temp_max_idx + 5, 'temp_var_ext_10d', xtr_temp_var_last_10)
+df_daily.insert(temp_max_idx + 6, 'temp_var_med_10d', avg_temp_var_last_10)
+# df_daily.insert(df_daily.columns.get_loc('umd_r_pct') + 1, 'umd_med_5d', avg_hum_last_5)
+# df_daily.insert(df_daily.columns.get_loc('umd_r_pct') + 2, 'umd_med_10d', avg_hum_last_10)
+df_daily.insert(df_daily.columns.get_loc('umd_r_pct') + 1, 'umd_med_15d', avg_hum_last_15)
+df_daily.insert(df_daily.columns.get_loc('umd_r_pct') + 2, 'umd_min_10d', min_hum_last_10)
+df_daily.insert(df_daily.columns.get_loc('umd_r_pct') + 3, 'umd_min_15d', min_hum_last_15)
+# df_daily.insert(df_daily.columns.get_loc('umd_r_pct') + 5, 'umd_max_10d', max_hum_last_10)
 df_daily.insert(df_daily.columns.get_loc('precip_max_mm') + 1, 'precip_med_10d', avg_prec_last_10)
 df_daily.insert(df_daily.columns.get_loc('press_min_mb') + 1, 'press_med_10d', avg_press_last_10)
+df_daily.insert(df_daily.columns.get_loc('vento_raj_max_mps') + 1, 'vento_vel_med_5d', avg_wind_last_5)
+df_daily.insert(df_daily.columns.get_loc('vento_raj_max_mps') + 2, 'vento_raj_max_5d', max_wind_last_5)
+df_daily.insert(df_daily.columns.get_loc('vento_raj_max_mps') + 3, 'vento_vel_med_10d', avg_wind_last_10)
+# df_daily.insert(df_daily.columns.get_loc('vento_raj_max_mps') + 4, 'vento_raj_max_10d', max_wind_last_10)
+df_daily.insert(df_daily.columns.get_loc('vento_raj_max_mps') + 4, 'vento_vel_med_15d', avg_wind_last_15)
+# df_daily.insert(df_daily.columns.get_loc('vento_raj_max_mps') + 6, 'vento_raj_max_15d', max_wind_last_15)
+df_daily.insert(df_daily.columns.get_loc('vento_raj_max_mps') + 5, 'vento_vel_med_30d', avg_wind_last_30)
+# df_daily.insert(df_daily.columns.get_loc('vento_raj_max_mps') + 8, 'vento_raj_max_30d', max_wind_last_30)
 
 # Restore old naming scheme if requested
 if KEEP_NAMES:

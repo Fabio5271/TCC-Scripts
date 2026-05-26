@@ -84,7 +84,7 @@ df.loc[mask_days, 'idade_anos'] = df['def_idade_dias'] / 365.25
 df = df.drop(columns=['NASC', 'COD_IDADE', 'IDADE', 'def_cod_idade', 'def_idade_anos', 'def_idade_meses', 'def_idade_dias'], errors='ignore')
 
 if ('j' in SHORT_OPTS or '--joined-csv' in sys.argv):
-    joined_csv_path = './joined_data.csv'
+    joined_csv_path = './data/joined_data.csv'
     df.to_csv(joined_csv_path, index=False)
     print(f"Joined CSV saved to {joined_csv_path}")
 
@@ -122,10 +122,21 @@ renames = {
     'temp_max_10d':         'Temp. máxima, últ. 10d',
     'temp_var_ext_10d':     'Var. temp. máx-mín últ. 10d',
     'temp_var_med_10d':     'Var. méd. da temp. últ. 10d',
-    'umd_med_10d':          'Umidade rel. méd. últ. 10d',
+    'umd_med_15d':          'Umidade rel. méd. últ. 15d',
     'precip_med_10d':       'Precipitação méd. últ. 10d',
-    'press_med_10d':        'Pressão média, últ. 10d'
+    'press_med_10d':        'Pressão média, últ. 10d',
+    'UTI_MES_TO':           'Dias de UTI no mês',
+    'QT_DIARIAS':           'Quantidade de diárias',
+    'VAL_TOT':              'Valor total do tratamento',
+    'VAL_UTI':              'Valor de UTI',
+    'DIAS_PERM':            'Dias no hospital',
+    'MORTE':                'Morte (sim/não)',
+    'COMPLEX':              'Complexidade da doença',
+    'res_LATITUDE':         'Latitude do paciente',
+    'res_LONGITUDE':        'Longitude do paciente',
+    'res_ALTITUDE':         'Altitude do paciente'
 }
+
 numeric_df.rename(mapper=renames, axis='columns', inplace=True)
 hm_df.rename(mapper=renames, axis='columns', inplace=True)
 
@@ -152,7 +163,7 @@ print(f"Heatmap saved to {save_path}")
 
 
 plt.figure()
-sns.relplot(data=numeric_df, x='Umidade rel. méd. últ. 10d', y='Número de internações')
+sns.relplot(data=numeric_df, x='Umidade rel. méd. últ. 15d', y='Número de internações')
 plt.tight_layout()
 
 save_path = 'generated-graphs/umd-10d-intrn'
